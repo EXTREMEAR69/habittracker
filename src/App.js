@@ -244,6 +244,7 @@ const HabitTracker = () => {
   };
 
   // Poll server for sync requests when a user is present
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let timer;
     
