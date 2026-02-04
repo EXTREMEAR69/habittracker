@@ -1,7 +1,7 @@
 import './storage';
 import './App.css';
 import React, { useState, useEffect } from 'react';
-import { Check, X, Plus, Trash2, Moon, Sun, StickyNote, BarChart3, Flame, Calendar, Palette, Menu, X as CloseIcon, Clock, ChevronRight, User, LogOut, Link as LinkIcon } from 'lucide-react';
+import { Check, X, Plus, Trash2, Moon, Sun, StickyNote, BarChart3, Flame, Calendar, Palette, Menu, X as CloseIcon, Clock, ChevronRight, User, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
@@ -37,7 +37,6 @@ const HabitTracker = () => {
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
-  const [showTourGuide, setShowTourGuide] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [onboardingStep, setOnboardingStep] = useState('welcome'); // welcome, signup, name-gender, theme, tour
   const [tempUserData, setTempUserData] = useState({ name: '', gender: '', authType: 'guest' });
@@ -273,7 +272,7 @@ const HabitTracker = () => {
       timer = setInterval(checkForSyncRequests, 60 * 1000); // every minute
     }
     return () => timer && clearInterval(timer);
-  }, [user]);
+  }, [user, checkForSyncRequests]);
 
   const saveTheme = async (theme) => {
     await window.storage.set('theme-color', theme);
