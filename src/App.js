@@ -1,6 +1,6 @@
 import './storage';
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Check, X, Plus, Trash2, Moon, Sun, StickyNote, BarChart3, Flame, Calendar, Palette, Menu, X as CloseIcon, Clock, ChevronRight, User, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
@@ -219,7 +219,7 @@ const HabitTracker = () => {
     };
   };
 
-  const uploadDataToServer = async (requestId) => {
+  const uploadDataToServer = useCallback(async (requestId) => {
     if (!user || !user.id) return { ok: false, message: 'No user' };
     const payload = collectUserPayload();
     try {
@@ -241,10 +241,9 @@ const HabitTracker = () => {
     } catch (err) {
       return { ok: false, message: err.message };
     }
-  };
+  }, [user]);
 
   // Poll server for sync requests when a user is present
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let timer;
     
@@ -274,7 +273,7 @@ const HabitTracker = () => {
       timer = setInterval(checkForSyncRequests, 60 * 1000); // every minute
     }
     return () => timer && clearInterval(timer);
-  }, [user]);
+  }, [user, uploadDataToServer]);
 
   const saveTheme = async (theme) => {
     await window.storage.set('theme-color', theme);
