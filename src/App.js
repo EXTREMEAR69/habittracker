@@ -243,36 +243,37 @@ const HabitTracker = () => {
     }
   };
 
-  const checkForSyncRequests = async () => {
-    if (!user || !user.id) return;
-    try {
-      const res = await fetch(`/api/check-sync?userId=${encodeURIComponent(user.id)}`);
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json.requested && json.requestId) {
-        // perform upload
-        const r = await uploadDataToServer(json.requestId);
-        if (r.ok) {
-          // inform server to mark processed (upload endpoint already marks it)
-          console.log('Data uploaded for sync request', json.requestId);
-        } else {
-          console.warn('Upload failed', r.message);
-        }
-      }
-    } catch (err) {
-      // silent
-    }
-  };
-
   // Poll server for sync requests when a user is present
   useEffect(() => {
     let timer;
+    
+    const checkForSyncRequests = async () => {
+      if (!user || !user.id) return;
+      try {
+        const res = await fetch(`/api/check-sync?userId=${encodeURIComponent(user.id)}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.requested && json.requestId) {
+          // perform upload
+          const r = await uploadDataToServer(json.requestId);
+          if (r.ok) {
+            // inform server to mark processed (upload endpoint already marks it)
+            console.log('Data uploaded for sync request', json.requestId);
+          } else {
+            console.warn('Upload failed', r.message);
+          }
+        }
+      } catch (err) {
+        // silent
+      }
+    };
+
     if (user && user.id) {
       checkForSyncRequests();
       timer = setInterval(checkForSyncRequests, 60 * 1000); // every minute
     }
     return () => timer && clearInterval(timer);
-  }, [user, checkForSyncRequests]);
+  }, [user]);
 
   const saveTheme = async (theme) => {
     await window.storage.set('theme-color', theme);
