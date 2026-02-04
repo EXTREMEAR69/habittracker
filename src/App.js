@@ -42,6 +42,8 @@ const HabitTracker = () => {
   const [onboardingStep, setOnboardingStep] = useState('welcome'); // welcome, signup, name-gender, theme, tour
   const [tempUserData, setTempUserData] = useState({ name: '', gender: '', authType: 'guest' });
   const [googleUser, setGoogleUser] = useState(null);
+  const [adminTargetUserId, setAdminTargetUserId] = useState('');
+  const [adminStatus, setAdminStatus] = useState('');
 
   const themes = {
     purple: { from: 'from-purple-500', to: 'to-purple-700', bg: 'bg-purple-600', hover: 'hover:bg-purple-700', light: 'bg-purple-100', text: 'text-purple-600' },
@@ -771,8 +773,8 @@ const HabitTracker = () => {
                   Start tracking your habits and achieve your goals
                 </p>
                 
-                <div className="flex flex-col items-center gap-4 w-full">
-                  <div style={{ width: 320, maxWidth: '100%' }} className="mx-auto">
+                <div className="auth-buttons">
+                  <div className="btn-auth">
                     <GoogleLogin
                       onSuccess={handleGoogleSuccess}
                       onError={() => console.log('Login Failed')}
@@ -786,7 +788,7 @@ const HabitTracker = () => {
                       setTempUserData({ name: '', gender: '', authType: 'guest' });
                       setOnboardingStep('name-gender');
                     }}
-                    className={`w-full px-6 py-4 rounded-xl font-semibold text-xl transition-colors ${
+                    className={`btn-auth font-semibold transition-colors ${
                       darkMode
                         ? 'bg-gray-700 text-white hover:bg-gray-600'
                         : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
