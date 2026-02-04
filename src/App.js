@@ -1,7 +1,7 @@
 import './storage';
 import './App.css';
-import React, { useState, useEffect } from 'react';
-import { Check, X, Plus, Trash2, Moon, Sun, StickyNote, BarChart3, Flame, Calendar, Palette, Menu, X as CloseIcon, Clock, ChevronRight, User, LogOut, Link as LinkIcon } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Check, X, Plus, Trash2, Moon, Sun, StickyNote, BarChart3, Flame, Calendar, Palette, Menu, X as CloseIcon, Clock, ChevronRight, User, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
@@ -37,7 +37,6 @@ const HabitTracker = () => {
   const [user, setUser] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
-  const [showTourGuide, setShowTourGuide] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [onboardingStep, setOnboardingStep] = useState('welcome'); // welcome, signup, name-gender, theme, tour
   const [tempUserData, setTempUserData] = useState({ name: '', gender: '', authType: 'guest' });
@@ -209,7 +208,7 @@ const HabitTracker = () => {
   // ----------------------
   // Sync helpers (client)
   // ----------------------
-  const collectUserPayload = () => {
+  const collectUserPayload = useCallback(() => {
     return {
       user: user || JSON.parse(window.localStorage.getItem('user-profile') || '{}'),
       habits: JSON.parse(window.localStorage.getItem('habits-list') || '[]'),
@@ -218,9 +217,9 @@ const HabitTracker = () => {
       studySessions: JSON.parse(window.localStorage.getItem('study-sessions') || '[]'),
       theme: window.localStorage.getItem('theme-color') || null
     };
-  };
+  }, [user]);
 
-  const uploadDataToServer = async (requestId) => {
+  const uploadDataToServer = useCallback(async (requestId) => {
     if (!user || !user.id) return { ok: false, message: 'No user' };
     const payload = collectUserPayload();
     try {
@@ -242,38 +241,39 @@ const HabitTracker = () => {
     } catch (err) {
       return { ok: false, message: err.message };
     }
-  };
-
-  const checkForSyncRequests = async () => {
-    if (!user || !user.id) return;
-    try {
-      const res = await fetch(`/api/check-sync?userId=${encodeURIComponent(user.id)}`);
-      if (!res.ok) return;
-      const json = await res.json();
-      if (json.requested && json.requestId) {
-        // perform upload
-        const r = await uploadDataToServer(json.requestId);
-        if (r.ok) {
-          // inform server to mark processed (upload endpoint already marks it)
-          console.log('Data uploaded for sync request', json.requestId);
-        } else {
-          console.warn('Upload failed', r.message);
-        }
-      }
-    } catch (err) {
-      // silent
-    }
-  };
+  }, [user, collectUserPayload]);
 
   // Poll server for sync requests when a user is present
   useEffect(() => {
     let timer;
+    
+    const checkForSyncRequests = async () => {
+      if (!user || !user.id) return;
+      try {
+        const res = await fetch(`/api/check-sync?userId=${encodeURIComponent(user.id)}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.requested && json.requestId) {
+          // perform upload
+          const r = await uploadDataToServer(json.requestId);
+          if (r.ok) {
+            // inform server to mark processed (upload endpoint already marks it)
+            console.log('Data uploaded for sync request', json.requestId);
+          } else {
+            console.warn('Upload failed', r.message);
+          }
+        }
+      } catch (err) {
+        // silent
+      }
+    };
+
     if (user && user.id) {
       checkForSyncRequests();
       timer = setInterval(checkForSyncRequests, 60 * 1000); // every minute
     }
     return () => timer && clearInterval(timer);
-  }, [user]);
+  }, [user, uploadDataToServer]);
 
   const saveTheme = async (theme) => {
     await window.storage.set('theme-color', theme);
