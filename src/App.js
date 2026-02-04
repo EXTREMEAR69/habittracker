@@ -41,8 +41,6 @@ const HabitTracker = () => {
   const [onboardingStep, setOnboardingStep] = useState('welcome'); // welcome, signup, name-gender, theme, tour
   const [tempUserData, setTempUserData] = useState({ name: '', gender: '', authType: 'guest' });
   const [googleUser, setGoogleUser] = useState(null);
-  const [adminTargetUserId, setAdminTargetUserId] = useState('');
-  const [adminStatus, setAdminStatus] = useState('');
 
   const themes = {
     purple: { from: 'from-purple-500', to: 'to-purple-700', bg: 'bg-purple-600', hover: 'hover:bg-purple-700', light: 'bg-purple-100', text: 'text-purple-600' },
@@ -1115,45 +1113,6 @@ const HabitTracker = () => {
                         text="signin_with"
                         width="250"
                       />
-                    </div>
-                  )}
-
-                  {/* Admin Panel (visible if you are the configured admin) */}
-                  {user?.googleInfo?.email === process.env.REACT_APP_ADMIN_EMAIL && (
-                    <div className="p-4 border-b">
-                      <h4 className={`text-sm font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Admin</h4>
-                      <div className="flex gap-2">
-                        <input
-                          value={adminTargetUserId || ''}
-                          onChange={(e) => setAdminTargetUserId(e.target.value)}
-                          placeholder="target user id"
-                          className="flex-1 px-3 py-2 rounded-lg border"
-                        />
-                        <button
-                          onClick={async () => {
-                            if (!adminTargetUserId) return setAdminStatus('Enter user id');
-                            setAdminStatus('Requesting...');
-                            try {
-                              const res = await fetch('/api/request-sync', {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'x-admin-secret': process.env.REACT_APP_ADMIN_SECRET || ''
-                                },
-                                body: JSON.stringify({ userId: adminTargetUserId })
-                              });
-                              const txt = await res.text();
-                              if (res.ok) setAdminStatus('Requested'); else setAdminStatus('Failed: ' + txt);
-                            } catch (err) {
-                              setAdminStatus('Error');
-                            }
-                          }}
-                          className="px-4 py-2 rounded-lg bg-indigo-600 text-white"
-                        >
-                          Request Sync
-                        </button>
-                      </div>
-                      {adminStatus && <div className="mt-2 text-sm text-gray-500">{adminStatus}</div>}
                     </div>
                   )}
 
